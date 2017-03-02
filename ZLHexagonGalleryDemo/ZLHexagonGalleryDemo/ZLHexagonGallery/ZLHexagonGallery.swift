@@ -40,13 +40,13 @@ class ZLHexagonGallery: UIScrollView {
     
     // Private
     
-    private var _registeredCellTypes: [String: AnyClass] = [:]
+    fileprivate var _registeredCellTypes: [String: AnyClass] = [:]
     
-    private var _count: Int = 0
+    fileprivate var _count: Int = 0
     
-    private var _cellRects: [Int: CGRect] = [:]
+    fileprivate var _cellRects: [Int: CGRect] = [:]
     
-    private var _visibleCellRects: [(Int, CGRect)] {
+    fileprivate var _visibleCellRects: [(Int, CGRect)] {
         get {
             return _cellRects.filter({ (i, rect) -> Bool in
                 return _displayingContentRect.containsVisibleRect(rect)
@@ -54,15 +54,15 @@ class ZLHexagonGallery: UIScrollView {
         }
     }
     
-    private var _visibleCells: [Int: ZLHexagonCell] = [:]
+    fileprivate var _visibleCells: [Int: ZLHexagonCell] = [:]
     
-    private var _displayingContentRect: CGRect {
+    fileprivate var _displayingContentRect: CGRect {
         get {
-            return CGRectMake(contentOffset.x, contentOffset.y, bounds.width, bounds.height)
+            return CGRect(x: contentOffset.x, y: contentOffset.y, width: bounds.width, height: bounds.height)
         }
     }
     
-    private var _highlightedIndex: Int = -1
+    fileprivate var _highlightedIndex: Int = -1
     
     internal var _displayingIndexStart: Int = -1
     internal var _displayingIndexEnd: Int = -1
@@ -70,7 +70,7 @@ class ZLHexagonGallery: UIScrollView {
 // MARK: - Init
     
     init() {
-        super.init(frame: CGRectZero)
+        super.init(frame: CGRect.zero)
         self.delegate = self
         self.alwaysBounceVertical = true
     }
@@ -81,7 +81,7 @@ class ZLHexagonGallery: UIScrollView {
     
 // MARK: - Interface
     
-    func registerClass(cls: AnyClass?, forCellWithReuseIdentifier reuseIdentifier: String) {
+    func registerClass(_ cls: AnyClass?, forCellWithReuseIdentifier reuseIdentifier: String) {
         guard let cls = cls else {
             return
         }
@@ -89,7 +89,7 @@ class ZLHexagonGallery: UIScrollView {
         self._registeredCellTypes[reuseIdentifier] = cls
     }
     
-    func dequeueReusableCellWithIdentifier(identifier: String) -> ZLHexagonCell? {
+    func dequeueReusableCellWithIdentifier(_ identifier: String) -> ZLHexagonCell? {
         if let cellInThePool = Pool.popCellForReuseIdentifier(identifier) {
             return cellInThePool
         }
@@ -136,7 +136,7 @@ class ZLHexagonGallery: UIScrollView {
         var remainedSpace = validRect.width - cellWidth
         while (remainedSpace >= (cellWidth + interItemSpacing)) {
             remainedSpace -= (cellWidth + interItemSpacing)
-            numberOfItemsPerLine++
+            numberOfItemsPerLine += 1
         }
         let numbersPerGroup: Int = (numberOfItemsPerLine + numberOfItemsPerLine - 1)
         let numberOfGroups: Int = (_count + numbersPerGroup - 1) / numbersPerGroup
@@ -148,8 +148,8 @@ class ZLHexagonGallery: UIScrollView {
             return
         } else {
             let lastGroupHasTwoLine: Bool = ((_count-1) % numbersPerGroup) >= Int(numbersPerGroup/2)
-            self.contentSize = CGRectUnion(validRect, CGRectMake(0, 0,
-                validRect.width, CGFloat(numberOfGroups) * heightOfGroup + (lastGroupHasTwoLine ? cellHeight * 0.25 : -cellSideLength))).size
+            self.contentSize = validRect.union(CGRect(x: 0, y: 0,
+                width: validRect.width, height: CGFloat(numberOfGroups) * heightOfGroup + (lastGroupHasTwoLine ? cellHeight * 0.25 : -cellSideLength))).size
         }
         
         // calculate cell rects
@@ -158,11 +158,11 @@ class ZLHexagonGallery: UIScrollView {
             let itemIndexInGroup: Int = i % numbersPerGroup
             let isFirstLine: Bool = itemIndexInGroup < Int(numbersPerGroup/2)
             let itemIndexInLine: Int = isFirstLine ? itemIndexInGroup : itemIndexInGroup - Int(numbersPerGroup/2)
-            let cellRect = CGRectMake(
-                cellWidth * (CGFloat(itemIndexInLine) + (isFirstLine ? 0.5 : 0)) + CGFloat(itemIndexInLine) * interItemSpacing,
-                cellHeight * (isFirstLine ? 0 : 0.75) + heightOfGroup * CGFloat(groupIndex) + (isFirstLine ? 0 : interItemSpacing),
-                cellWidth,
-                cellHeight)
+            let cellRect = CGRect(
+                x: cellWidth * (CGFloat(itemIndexInLine) + (isFirstLine ? 0.5 : 0)) + CGFloat(itemIndexInLine) * interItemSpacing,
+                y: cellHeight * (isFirstLine ? 0 : 0.75) + heightOfGroup * CGFloat(groupIndex) + (isFirstLine ? 0 : interItemSpacing),
+                width: cellWidth,
+                height: cellHeight)
             _cellRects[i] = cellRect
         }
         
@@ -171,16 +171,16 @@ class ZLHexagonGallery: UIScrollView {
     }
     
     func visibleCells() -> [ZLHexagonCell] {
-        return _visibleCells.values.sort({ (firstCell, secondCell) -> Bool in
+        return _visibleCells.values.sorted(by: { (firstCell, secondCell) -> Bool in
             return firstCell._index < secondCell._index
         })
     }
     
 // MARK: - Touches Handle
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        super.touchesBegan(touches, withEvent: event)
-        guard let touchPoint = touches.first?.locationInView(self) else {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        guard let touchPoint = touches.first?.location(in: self) else {
             return
         }
         
@@ -220,8 +220,8 @@ class ZLHexagonGallery: UIScrollView {
         else { }
     }
     
-    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        super.touchesEnded(touches, withEvent: event)
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
         guard _highlightedIndex >= 0 else {
             return
         }
@@ -243,8 +243,8 @@ class ZLHexagonGallery: UIScrollView {
         }
     }
     
-    override func touchesCancelled(touches: Set<UITouch>?, withEvent event: UIEvent?) {
-        super.touchesCancelled(touches, withEvent: event)
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
         
         if _highlightedIndex >= 0 {
             self.unhighlightItemAtIndex(_highlightedIndex)
@@ -255,7 +255,7 @@ class ZLHexagonGallery: UIScrollView {
 // MARK: - Private Functions
 private extension ZLHexagonGallery {
     
-    private func displayingRectDidChange(rect: CGRect? = nil) {
+    func displayingRectDidChange(_ rect: CGRect? = nil) {
         guard let delegation = self.zl_delegate else {
             return
         }
@@ -291,12 +291,12 @@ private extension ZLHexagonGallery {
         
         // do not re-calculate indexes unless visible cells has been modified.
         if isIndexStartEndChanged {
-            _displayingIndexStart = _visibleCells.keys.sort().first ?? -1
-            _displayingIndexEnd = _visibleCells.keys.sort().last ?? -1
+            _displayingIndexStart = _visibleCells.keys.sorted().first ?? -1
+            _displayingIndexEnd = _visibleCells.keys.sorted().last ?? -1
         }
     }
     
-    private func removeCells() {
+    func removeCells() {
         for view in self.subviews {
             if view is ZLHexagonCell {
                 view.removeFromSuperview()
@@ -304,7 +304,7 @@ private extension ZLHexagonGallery {
         }
     }
     
-    private func highlightItemAtIndex(index: Int, explicit: Bool) {
+    func highlightItemAtIndex(_ index: Int, explicit: Bool) {
         if _highlightedIndex == index {
             // do nothing
         } else {
@@ -317,7 +317,7 @@ private extension ZLHexagonGallery {
         }
     }
     
-    private func unhighlightItemAtIndex(index: Int) {
+    func unhighlightItemAtIndex(_ index: Int) {
         if _highlightedIndex == index {
             _visibleCells[_highlightedIndex]?.setHighlighted(false)
             self.zl_delegate?.gallery(self, didUnhighlightItemAtIndex: _highlightedIndex)
@@ -325,26 +325,26 @@ private extension ZLHexagonGallery {
         }
     }
     
-    private func selectItemAtIndex(index: Int) {
+    func selectItemAtIndex(_ index: Int) {
         _visibleCells[index]?.setSelected(true)
         self.zl_delegate?.gallery(self, didSelectItemAtIndex: index)
     }
     
-    private func deselectItemAtIndex(index: Int) {
+    func deselectItemAtIndex(_ index: Int) {
         _visibleCells[index]?.setSelected(false)
         self.zl_delegate?.gallery(self, didDeselectItemAtIndex: index)
     }
     
-    private func _distanceBetween(p1: CGPoint, _ p2: CGPoint) -> CGFloat {
+    func _distanceBetween(_ p1: CGPoint, _ p2: CGPoint) -> CGFloat {
         let dy = p1.y - p2.y
         let dx = p1.x - p2.x
         return sqrt(dy * dy + dx * dx)
     }
     
-    private func _centerForRect(rect: CGRect) -> CGPoint {
+    func _centerForRect(_ rect: CGRect) -> CGPoint {
         return CGPoint(
-            x: (CGRectGetMaxX(rect) - CGRectGetMinX(rect)) * 0.5 + rect.origin.x,
-            y: (CGRectGetMaxY(rect) - CGRectGetMinY(rect)) * 0.5 + rect.origin.y
+            x: (rect.maxX - rect.minX) * 0.5 + rect.origin.x,
+            y: (rect.maxY - rect.minY) * 0.5 + rect.origin.y
         )
     }
 }
@@ -352,12 +352,12 @@ private extension ZLHexagonGallery {
 // MARK: - Reuse pool
 extension ZLHexagonGallery {
     
-    private struct Pool {
+    fileprivate struct Pool {
         
-        private static var lock: NSLock = NSLock()
-        private static var cells: [String: [ZLHexagonCell]] = [:]
+        fileprivate static var lock: NSLock = NSLock()
+        fileprivate static var cells: [String: [ZLHexagonCell]] = [:]
         
-        static func pushCell(cell: ZLHexagonCell, forReuseIdentifier identifier: String) {
+        static func pushCell(_ cell: ZLHexagonCell, forReuseIdentifier identifier: String) {
             lock.lock()
             defer {
                 lock.unlock()
@@ -370,7 +370,7 @@ extension ZLHexagonGallery {
             cells[identifier]?.append(cell)
         }
         
-        static func popCellForReuseIdentifier(identifier: String) -> ZLHexagonCell? {
+        static func popCellForReuseIdentifier(_ identifier: String) -> ZLHexagonCell? {
             lock.lock()
             defer {
                 lock.unlock()
@@ -388,7 +388,7 @@ extension ZLHexagonGallery {
 // MARK: - Protocol - Scroll View
 extension ZLHexagonGallery: UIScrollViewDelegate {
     
-    func scrollViewDidScroll(scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         self.displayingRectDidChange()
     }
 }

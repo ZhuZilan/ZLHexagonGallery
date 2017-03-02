@@ -12,20 +12,20 @@ class DemoViewController: UIViewController {
     
 // MARK: - Control
     
-    private weak var headerView: UIView!
-    private weak var headerLabel: UILabel!
-    private weak var actionButton: UIButton!
-    private weak var reloadButton: UIButton!
-    private weak var hexagonGallery: ZLHexagonGallery!
+    fileprivate weak var headerView: UIView!
+    fileprivate weak var headerLabel: UILabel!
+    fileprivate weak var actionButton: UIButton!
+    fileprivate weak var reloadButton: UIButton!
+    fileprivate weak var hexagonGallery: ZLHexagonGallery!
     
 // MARK: - Data
     
-    private var dataSource: [DataModel] = []
-    private var logContent: String = ""
+    fileprivate var dataSource: [DataModel] = []
+    fileprivate var logContent: String = ""
     
-    private var logEnabled: Bool {
+    fileprivate var logEnabled: Bool {
         get {
-            return actionButton.selected
+            return actionButton.isSelected
         }
     }
     
@@ -34,15 +34,19 @@ class DemoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationController?.setNavigationBarHidden(true, animated: false)
-        self.edgesForExtendedLayout = UIRectEdge.None
+        self.edgesForExtendedLayout = UIRectEdge()
         self.createViews()
         self.createConstraints()
         self.createInteractions()
-        self.clearLog()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.reloadButtonDidClick(self.reloadButton)
     }
     
     /** Create and bind views. */
-    private func createViews() {
+    fileprivate func createViews() {
         
         headerView = {
             let view = UIView()
@@ -54,31 +58,31 @@ class DemoViewController: UIViewController {
                 let label = UILabel()
                 view.addSubview(label)
                 label.translatesAutoresizingMaskIntoConstraints = false
-                label.font = UIFont.systemFontOfSize(20)
+                label.font = UIFont.systemFont(ofSize: 20)
                 label.text = "六棱验证"
                 label.textColor = RGB(230)
-                label.textAlignment = NSTextAlignment.Center
+                label.textAlignment = NSTextAlignment.center
                 return label
             } ()
             
             actionButton = {
-                let button = UIButton(type: UIButtonType.Custom)
+                let button = UIButton(type: UIButtonType.custom)
                 view.addSubview(button)
                 button.translatesAutoresizingMaskIntoConstraints = false
-                button.setTitle("LOG", forState: UIControlState.Normal)
-                button.setTitleColor(RGB(188), forState: UIControlState.Normal)
-                button.setTitleColor(RGB(127), forState: UIControlState.Highlighted)
-                button.setTitleColor(RGB(230), forState: UIControlState.Selected)
+                button.setTitle("LOG", for: UIControlState())
+                button.setTitleColor(RGB(188), for: UIControlState())
+                button.setTitleColor(RGB(127), for: UIControlState.highlighted)
+                button.setTitleColor(RGB(230), for: UIControlState.selected)
                 return button
             } ()
             
             reloadButton = {
-                let button = UIButton(type: UIButtonType.Custom)
+                let button = UIButton(type: UIButtonType.custom)
                 view.addSubview(button)
                 button.translatesAutoresizingMaskIntoConstraints = false
-                button.setTitle("RLD", forState: UIControlState.Normal)
-                button.setTitleColor(RGB(230), forState: UIControlState.Normal)
-                button.setTitleColor(RGB(127), forState: UIControlState.Highlighted)
+                button.setTitle("RLD", for: UIControlState())
+                button.setTitleColor(RGB(230), for: UIControlState())
+                button.setTitleColor(RGB(127), for: UIControlState.highlighted)
                 return button
             } ()
             
@@ -101,14 +105,14 @@ class DemoViewController: UIViewController {
     }
     
     /** Make constraints using visual format language. */
-    private func createConstraints() {
+    fileprivate func createConstraints() {
         let bspa: CGFloat = CGFloat(20)
         let sspa: CGFloat = CGFloat(8)
         let vflmetrics: [String: AnyObject] = [
-            "staSize": CGFloat(20),
-            "navSize": CGFloat(44),
-            "bspa": bspa,
-            "sspa": sspa
+            "staSize": CGFloat(20) as AnyObject,
+            "navSize": CGFloat(44) as AnyObject,
+            "bspa": bspa as AnyObject,
+            "sspa": sspa as AnyObject
         ]
         let vflviews: [String: AnyObject] = [
             "headerView": headerView,
@@ -130,30 +134,30 @@ class DemoViewController: UIViewController {
         
         var constraints: [NSLayoutConstraint] = []
         for vflformat in vflformats {
-            constraints += NSLayoutConstraint.constraintsWithVisualFormat(vflformat, options: [], metrics: vflmetrics, views: vflviews)
+            constraints += NSLayoutConstraint.constraints(withVisualFormat: vflformat, options: [], metrics: vflmetrics, views: vflviews)
         }
         
         self.view.addConstraints(constraints)
     }
     
-    private func createInteractions() {
-        self.reloadButton.addTarget(self, action: "reloadButtonDidClick:", forControlEvents: UIControlEvents.TouchUpInside)
-        self.actionButton.addTarget(self, action: "actionButtonDidClick:", forControlEvents: UIControlEvents.TouchUpInside)
+    fileprivate func createInteractions() {
+        self.reloadButton.addTarget(self, action: #selector(DemoViewController.reloadButtonDidClick(_:)), for: UIControlEvents.touchUpInside)
+        self.actionButton.addTarget(self, action: #selector(DemoViewController.actionButtonDidClick(_:)), for: UIControlEvents.touchUpInside)
         //self.logScrollView.addObserver(self, forKeyPath: "contentSize", options: NSKeyValueObservingOptions.New, context: nil)
     }
     
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        return UIStatusBarStyle.LightContent
+    override var preferredStatusBarStyle : UIStatusBarStyle {
+        return UIStatusBarStyle.lightContent
     }
     
 // MARK: - Interaction
     
-    private var __reloadingCountTag: Bool = false
-    func reloadButtonDidClick(sender: UIButton) {
+    fileprivate var reloadingCountTag: Bool = false
+    func reloadButtonDidClick(_ sender: UIButton) {
         self.clearLog()
-        __reloadingCountTag = !__reloadingCountTag
+        reloadingCountTag = !reloadingCountTag
         dataSource = []
-        let reloadingCount: Int = __reloadingCountTag ? 30 : 32
+        let reloadingCount: Int = reloadingCountTag ? 30 : 32
         for i in 0..<reloadingCount {
             let model = DataModel(index: i)
             dataSource.append(model)
@@ -161,9 +165,9 @@ class DemoViewController: UIViewController {
         hexagonGallery.reloadData()
     }
     
-    func actionButtonDidClick(sender: UIButton) {
-        sender.selected = !sender.selected
-        if !sender.selected {
+    func actionButtonDidClick(_ sender: UIButton) {
+        sender.isSelected = !sender.isSelected
+        if !sender.isSelected {
             self.clearLog()
         }
     }
@@ -173,57 +177,57 @@ class DemoViewController: UIViewController {
 // MARK: - Protocol - Hexagon
 extension DemoViewController: ZLHexagonGalleryDelegate {
     
-    func galleryNumberOfItems(gallery: ZLHexagonGallery) -> Int {
+    func galleryNumberOfItems(_ gallery: ZLHexagonGallery) -> Int {
         let count = dataSource.count
         self.appendLog("\(count)")
         return count
     }
     
-    func gallery(gallery: ZLHexagonGallery, cellForRowAtIndex index: Int) -> ZLHexagonCell {
+    func gallery(_ gallery: ZLHexagonGallery, cellForRowAtIndex index: Int) -> ZLHexagonCell {
         self.appendLog("\(index)")
         let cell = gallery.dequeueReusableCellWithIdentifier("CustomHexagonCell") as! CustomHexagonCell
         cell.fillModel(dataSource[index])
         return cell
     }
     
-    func gallery(gallery: ZLHexagonGallery, willDisplayCell cell: ZLHexagonCell, forIndex index: Int) {
+    func gallery(_ gallery: ZLHexagonGallery, willDisplayCell cell: ZLHexagonCell, forIndex index: Int) {
         self.appendLog("\(index)")
     }
     
-    func gallery(gallery: ZLHexagonGallery, didEndDisplayingCell cell: ZLHexagonCell, forIndex index: Int) {
+    func gallery(_ gallery: ZLHexagonGallery, didEndDisplayingCell cell: ZLHexagonCell, forIndex index: Int) {
         self.appendLog("\(index)")
     }
     
-    func gallery(gallery: ZLHexagonGallery, shouldHightlightItemAtIndex index: Int) -> Bool {
-        self.appendLog("\(index)")
-        return true
-    }
-    
-    func gallery(gallery: ZLHexagonGallery, shouldSelectItemAtIndex index: Int) -> Bool {
+    func gallery(_ gallery: ZLHexagonGallery, shouldHightlightItemAtIndex index: Int) -> Bool {
         self.appendLog("\(index)")
         return true
     }
     
-    func gallery(gallery: ZLHexagonGallery, shouldDeselectItemAtIndex index: Int) -> Bool {
+    func gallery(_ gallery: ZLHexagonGallery, shouldSelectItemAtIndex index: Int) -> Bool {
         self.appendLog("\(index)")
         return true
     }
     
-    func gallery(gallery: ZLHexagonGallery, didHighlightItemAtIndex index: Int) {
+    func gallery(_ gallery: ZLHexagonGallery, shouldDeselectItemAtIndex index: Int) -> Bool {
+        self.appendLog("\(index)")
+        return true
+    }
+    
+    func gallery(_ gallery: ZLHexagonGallery, didHighlightItemAtIndex index: Int) {
         self.appendLog("\(index)")
     }
     
-    func gallery(gallery: ZLHexagonGallery, didUnhighlightItemAtIndex index: Int) {
+    func gallery(_ gallery: ZLHexagonGallery, didUnhighlightItemAtIndex index: Int) {
         self.appendLog("\(index)")
     }
     
-    func gallery(gallery: ZLHexagonGallery, didSelectItemAtIndex index: Int) {
+    func gallery(_ gallery: ZLHexagonGallery, didSelectItemAtIndex index: Int) {
         self.appendLog("\(index)")
         
         dataSource[index].selected = true
     }
     
-    func gallery(gallery: ZLHexagonGallery, didDeselectItemAtIndex index: Int) {
+    func gallery(_ gallery: ZLHexagonGallery, didDeselectItemAtIndex index: Int) {
         self.appendLog("\(index)")
         
         dataSource[index].selected = false
@@ -238,7 +242,7 @@ extension DemoViewController {
         //self.logScrollLabel.text = logContent
     }
     
-    func appendLog(content: String, functionName: String = __FUNCTION__) {
+    func appendLog(_ content: String, functionName: String = #function) {
         guard logEnabled else {
             return
         }
@@ -249,10 +253,10 @@ extension DemoViewController {
 
 private class CustomHexagonCell: ZLHexagonCell {
     
-    func fillModel(model: DataModel) {
+    func fillModel(_ model: DataModel) {
         if self.imageView.image == nil {
             self.imageView?.image = UIImage(named: "icon_hexagon")
-            self.imageView.layer.borderColor = RGB(0, 0, 0, alpha: 0.25).CGColor
+            self.imageView.layer.borderColor = RGB(0, 0, 0, alpha: 0.25).cgColor
         }
         
         self.setSelected(model.selected)

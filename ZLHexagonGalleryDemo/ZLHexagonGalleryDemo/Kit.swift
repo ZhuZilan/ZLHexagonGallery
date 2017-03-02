@@ -8,46 +8,47 @@
 
 import UIKit
 
-let screenWidth: CGFloat = UIScreen.mainScreen().bounds.size.width
-let screenHeight: CGFloat = UIScreen.mainScreen().bounds.size.height
+let screenWidth: CGFloat = UIScreen.main.bounds.size.width
+let screenHeight: CGFloat = UIScreen.main.bounds.size.height
 
 // MARK: - Colour
 
-func RGB(rgb: Int) -> UIColor {
+func RGB(_ rgb: Int) -> UIColor {
     return RGB(rgb, rgb, rgb)
 }
 
-func RGB(red: Int, _ green: Int, _ blue: Int, alpha: CGFloat = 1.0) -> UIColor {
+func RGB(_ red: Int, _ green: Int, _ blue: Int, alpha: CGFloat = 1.0) -> UIColor {
     return UIColor(red: CGFloat(red)/255.0, green: CGFloat(green)/255.0, blue: CGFloat(blue)/255.0, alpha: alpha)
 }
 
 // MARK: - Miscellaneous
 
-func ZLLogGetContent(content: AnyObject? = nil, functionName: String = __FUNCTION__) -> String {
+func ZLLogGetContent(_ content: AnyObject? = nil, functionName: String = #function) -> String {
     let contentString = (content == nil ? "nil" : "\(content!)")
     return "(｡･ω･｡)ﾉ [\(functionName)] \(contentString)"
 }
 
-func ZLLog(content: AnyObject? = nil, functionName: String = __FUNCTION__, var fileName: String = __FILE__) {
-    fileName = fileName.componentsSeparatedByString("/").last ?? ""
+func ZLLog(_ content: Any? = nil, functionName: String = #function, fileName: String = #file) {
+    var fileName = fileName
+    fileName = fileName.components(separatedBy: "/").last ?? ""
     let contentString = (content == nil ? "nil" : "\(content!)")
     print("(｡･ω･｡)ﾉ \(fileName) [\(functionName)] \(contentString)")
 }
 
-func PrintThread(tag: AnyObject, functionName: String = __FUNCTION__) {
-    let timeStamp = NSDate().timeIntervalSince1970
-    print("[\(timeStamp):\(functionName)] \(tag) " + (NSThread.isMainThread() ? "Mainthread" : "Subthread"))
+func PrintThread(_ tag: AnyObject, functionName: String = #function) {
+    let timeStamp = Date().timeIntervalSince1970
+    print("[\(timeStamp):\(functionName)] \(tag) " + (Thread.isMainThread ? "Mainthread" : "Subthread"))
 }
 
-func TimeStamp() -> NSTimeInterval {
-    return NSDate().timeIntervalSince1970
+func TimeStamp() -> TimeInterval {
+    return Date().timeIntervalSince1970
 }
 
 // MARK: - Extension
 
 extension Array {
     
-    func objectAtIndex(index: Int) -> Element? {
+    func objectAtIndex(_ index: Int) -> Element? {
         if 0 <= index && index < self.count {
             return self[index]
         } else {
@@ -58,60 +59,46 @@ extension Array {
 
 extension CGRect {
     
-    func containsVisibleRect(rect: CGRect) -> Bool {
-        let intersection = CGRectIntersection(self, rect)
+    func containsVisibleRect(_ rect: CGRect) -> Bool {
+        let intersection = self.intersection(rect)
         return (intersection.width > 0 && intersection.height > 0)
     }
 }
 
 // MARK: - Thread
 
-func zl_executeInMain(execution: (() -> Void)) {
-    if NSThread.isMainThread() {
+func zl_executeInMain(_ execution: @escaping (() -> Void)) {
+    if Thread.isMainThread {
         execution()
     } else {
-        dispatch_after(
-            dispatch_time(DISPATCH_TIME_NOW, 0),
-            dispatch_get_main_queue(),
-            execution)
+        DispatchQueue.main.async(execute: execution)
     }
 }
 
-func zl_executeInThread(execution: (() -> Void)) {
-    if NSThread.isMainThread() {
-        dispatch_after(
-            dispatch_time(DISPATCH_TIME_NOW, 0),
-            dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-            execution)
+func zl_executeInThread(_ execution: @escaping (() -> Void)) {
+    if Thread.isMainThread {
+        let queueLabel = "ZL.Util.GlobalQueueLabel"
+        DispatchQueue(label: queueLabel).async(execute: execution)
     } else {
         execution()
     }
 }
 
-func zl_delayExecuteInMain(delay: NSTimeInterval, execution: (() -> Void)) {
+func zl_delayExecuteInMain(_ delay: TimeInterval, execution: @escaping (() -> Void)) {
     if delay == 0 {
         zl_executeInMain(execution)
     } else {
-        let dispatchTime: dispatch_time_t = dispatch_time(
-            DISPATCH_TIME_NOW,
-            Int64(delay * Double(NSEC_PER_SEC)))
-        dispatch_after(
-            dispatchTime,
-            dispatch_get_main_queue(),
-            execution)
+        let deadline = DispatchTime.now() + DispatchTimeInterval.milliseconds(Int(1000 * delay))
+        DispatchQueue.main.asyncAfter(deadline: deadline, execute: execution)
     }
 }
 
-func zl_delayExecuteInThread(delay: NSTimeInterval, execution: (() -> Void)) {
+func zl_delayExecuteInThread(_ delay: TimeInterval, execution: @escaping (() -> Void)) {
     if delay == 0 {
         zl_executeInThread(execution)
     } else {
-        let dispatchTime: dispatch_time_t = dispatch_time(
-            DISPATCH_TIME_NOW,
-            Int64(delay * Double(NSEC_PER_SEC)))
-        dispatch_after(
-            dispatchTime,
-            dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-            execution)
+        let queueLabel = "ZL.Util.GlobalQueueLabel"
+        let deadline = DispatchTime.now() + DispatchTimeInterval.milliseconds(Int(1000 * delay))
+        DispatchQueue(label: queueLabel).asyncAfter(deadline: deadline, execute: execution);
     }
 }
